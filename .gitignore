@@ -1,0 +1,27 @@
+# Python
+__pycache__/
+*.py[oc]
+build/
+dist/
+wheels/
+*.egg-info
+.venv
+.mypy_cache/
+.pytest_cache/
+.ruff_cache/
+.coverage
+
+# Raw downloads (the committed snapshots in data/ are small extracts)
+cache/
+
+# IDE / OS
+.idea/
+.vscode/
+.DS_Store
+
+# Secrets
+.env
+
+# Built demo site
+site/
+
