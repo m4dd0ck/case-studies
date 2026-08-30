@@ -8,6 +8,8 @@ the city or the toll authority, so they are left out.
 """
 
 import csv
+from collections.abc import Iterable
+from dataclasses import dataclass
 from pathlib import Path
 
 import duckdb
@@ -72,3 +74,80 @@ def extract(year: int = 2025, out: Path = SNAPSHOT) -> Path:
         writer.writerow(FIELDS)
         writer.writerows(rows)
     return out
+
+
+@dataclass(frozen=True)
+class Trips:
+    """Totals for a slice of the snapshot."""
+
+    trips: int
+    earnings: float
+    minutes: float
+
+    @property
+    def per_trip(self) -> float:
+        return self.earnings / self.trips
+
+    @property
+    def minutes_per_trip(self) -> float:
+        return self.minutes / self.trips
+
+    @property
+    def per_occupied_hour(self) -> float:
+        return self.earnings / self.minutes * 60
+
+
+def load_hourly(path: Path = SNAPSHOT) -> list[dict[str, str]]:
+    with path.open(newline="") as handle:
+        return list(csv.DictReader(handle))
+
+
+def select(
+    rows: list[dict[str, str]],
+    area: str,
+    day_type: str | None = None,
+    hours: Iterable[int] | None = None,
+    to_area: str | None = None,
+) -> Trips:
+    """Sum trips picked up in ``area``, optionally narrowed by day type, hours and destination."""
+    wanted = None if hours is None else {str(h) for h in hours}
+    picked = [
+        row
+        for row in rows
+        if row["area"] == area
+        and (day_type is None or row["day_type"] == day_type)
+        and (wanted is None or row["hour"] in wanted)
+        and (to_area is None or row["to_area"] == to_area)
+    ]
+    if not picked:
+        raise ValueError(f"No trips for {area}, {day_type}, {hours}, {to_area}")
+    return Trips(
+        sum(int(r["trips"]) for r in picked),
+        sum(float(r["earnings"]) for r in picked),
+        sum(float(r["trip_minutes"]) for r in picked),
+    )
+
+
+def break_even_wait(
+    rows: list[dict[str, str]],
+    airport: str,
+    day_type: str,
+    hour: int,
+    utilization: float,
+) -> float:
+    """Longest queue (minutes) at which waiting for an airport fare beats driving back empty.
+
+    Two ways to spend the same stretch of time after dropping a passenger at the airport:
+
+    - wait ``W`` minutes in the queue, then drive a fare worth ``A`` taking ``T`` minutes;
+    - drive empty to Manhattan (``D`` minutes) and work there, earning ``r`` per minute
+      (the occupied rate x ``utilization``, the share of the shift with a passenger aboard).
+
+    Equal when ``A = r (W + T - D)``, so ``W = A / r - T + D``. ``D`` is taken as the time a
+    Manhattan-to-airport fare takes in the same hour; the records have no empty driving.
+    """
+    fare = select(rows, airport, day_type, [hour])
+    city = select(rows, "Manhattan", day_type, [hour])
+    drive_back = select(rows, "Manhattan", day_type, [hour], to_area=airport).minutes_per_trip
+    rate = city.earnings / city.minutes * utilization
+    return fare.per_trip / rate - fare.minutes_per_trip + drive_back
