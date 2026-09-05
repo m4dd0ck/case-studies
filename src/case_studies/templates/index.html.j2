@@ -1,0 +1,17 @@
+{% extends "base.html.j2" %}
+{% block title %}Case studies{% endblock %}
+{% block body %}
+<div class="kicker">Case studies</div>
+<h1>Short memos on public data</h1>
+<p class="question">Each one takes a question someone would pay to have answered, works it
+through on open data, and ends in a recommendation with its caveats.</p>
+{% for memo in memos %}
+<div class="panel">
+  <h2 style="margin-top: 4px"><a href="{{ memo.slug }}.html">{{ memo.title }}</a></h2>
+  <p style="margin: 4px 0">{{ memo.question }}</p>
+  <p class="caption">Data: {{ memo.data }}</p>
+</div>
+{% endfor %}
+{% endblock %}
+{% block footer %}Source code and data snapshots:
+<a href="https://github.com/m4dd0ck/case-studies">github.com/m4dd0ck/case-studies</a>{% endblock %}
