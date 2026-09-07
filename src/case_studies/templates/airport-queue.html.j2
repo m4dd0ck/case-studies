@@ -1,0 +1,75 @@
+{% extends "base.html.j2" %}
+{% set jfk, lga = areas["JFK"], areas["LaGuardia"] %}
+{% block body %}
+<div class="kicker">Memo · NYC taxi</div>
+<h1>{{ memo.title }}</h1>
+<p class="question">{{ memo.question }}</p>
+
+<h2>Recommendation</h2>
+<div class="answer">
+  <p>On weekday afternoons, join the JFK queue if you expect to leave with a fare within about
+  <b>{{ minutes(afternoon["JFK"]) }}</b>, and the LaGuardia queue within about
+  <b>{{ minutes(afternoon["LaGuardia"]) }}</b>. Past that, drive back empty and work Manhattan.</p>
+  <p>Between 2am and 6am the bar is lower: about {{ minutes(night["JFK"]) }} at JFK and
+  {{ minutes(night["LaGuardia"]) }} at LaGuardia.</p>
+  <p>These assume a driver working Manhattan has a passenger aboard half the time. At 60% the
+  afternoon JFK figure is {{ minutes(afternoon_range["JFK"][0]) }}; at 40% it is
+  {{ minutes(afternoon_range["JFK"][1]) }}. Busier drivers should be less patient.</p>
+</div>
+
+<h2>An airport fare pays more per hour, if it comes quickly</h2>
+<p>A JFK pickup averaged <b>${{ "%.2f" | format(jfk.per_trip) }}</b> in fare and tip over
+{{ "%.0f" | format(jfk.minutes_per_trip) }} minutes; a Manhattan pickup ${{ "%.2f" | format(areas["Manhattan"].per_trip) }}
+over {{ "%.0f" | format(areas["Manhattan"].minutes_per_trip) }}. Per hour with a passenger aboard the
+airports earn {{ "%.0f" | format((jfk.per_occupied_hour / areas["Manhattan"].per_occupied_hour - 1) * 100) }}%
+(JFK) and {{ "%.0f" | format((lga.per_occupied_hour / areas["Manhattan"].per_occupied_hour - 1) * 100) }}%
+(LaGuardia) more:</p>
+<div class="panel">{{ rate_chart | safe }}
+  <p class="caption">Fare plus card tip per hour with a passenger aboard, by pickup area, 2025.</p></div>
+<p>The catch is the time without a passenger. The queue at the airport lot is unpaid, and so is
+the empty drive back if you skip it: about {{ "%.0f" | format(drive_back["JFK"]) }} minutes from JFK
+and {{ "%.0f" | format(drive_back["LaGuardia"]) }} from LaGuardia on a weekday afternoon.</p>
+
+<h2>How long a wait is still worth it, by hour</h2>
+<p>Waiting is worth it while the airport fare earns more than the same stretch of time back in
+Manhattan, after the empty drive. That gives the longest wait worth accepting:</p>
+<div class="panel">{{ wait_chart | safe }}
+  <p class="caption">Longest worthwhile queue in minutes, weekdays, by hour of pickup, with a
+  passenger aboard {{ "%.0f" | format(central * 100) }}% of the time in Manhattan.</p></div>
+<div class="panel scroll"><table>
+  <tr><th>Hour</th><th>JFK weekday</th><th>JFK weekend</th><th>LGA weekday</th><th>LGA weekend</th></tr>
+  {% for row in table %}
+  <tr><td>{{ row.hour }}</td>
+    {% for key in ["JFK_weekday", "JFK_weekend", "LaGuardia_weekday", "LaGuardia_weekend"] %}
+    <td>{{ minutes(row[key]) }}</td>{% endfor %}</tr>
+  {% endfor %}
+</table></div>
+
+<h2>Caveats</h2>
+<ul>
+  <li><b>The queue length is not in the data.</b> This memo gives the threshold; the driver
+  still has to judge the wait, from the lot board or other drivers.</li>
+  <li><b>Time without a passenger is not recorded</b>, so the share of a Manhattan shift spent
+  with a passenger is an assumption, shown at 40%, 50% and 60%.</li>
+  <li>The empty drive back is estimated from how long paid trips from Manhattan to the same
+  airport took in that hour; empty cars may be a little quicker.</li>
+  <li>Cash tips are not recorded, so every figure here understates what cash-paying riders
+  leave. If the cash share differs between airport and city riders, the comparison shifts.</li>
+  <li>Tolls, surcharges and taxes are left out: they pass through to the city and the toll
+  authority rather than to the driver.</li>
+</ul>
+
+<h2>Next steps</h2>
+<ul>
+  <li>Log a week of actual queue times at both lots and compare them with the thresholds above.</li>
+  <li>Repeat with a driver's own trip history to replace the assumed utilization with a measured one.</li>
+</ul>
+{% endblock %}
+{% block footer %}
+Data: NYC Taxi &amp; Limousine Commission yellow-cab trip records, January-December 2025,
+{{ "{:,}".format(total_trips) }} trips after removing records with fares under $3 or over $500,
+zero distance, or durations outside 1-180 minutes. Earnings are fare plus tip. Airports are TLC
+zones 132 (JFK) and 138 (LaGuardia). Break-even wait W = A / r - T + D, where A and T are the
+average airport fare and its minutes, r is Manhattan earnings per minute of the shift, and D is
+the drive back. Code: <a href="https://github.com/m4dd0ck/case-studies">github.com/m4dd0ck/case-studies</a>.
+{% endblock %}

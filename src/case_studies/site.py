@@ -8,6 +8,8 @@ from typing import Any
 
 from jinja2 import Environment, PackageLoader, select_autoescape
 
+from case_studies.memos import airport
+
 SITE_MARKER = ".memos-site"
 _env = Environment(
     loader=PackageLoader("case_studies", "templates"), autoescape=select_autoescape(["j2"])
@@ -23,7 +25,15 @@ class Memo:
     build: Callable[[], dict[str, Any]]
 
 
-MEMOS: list[Memo] = []
+MEMOS = [
+    Memo(
+        "airport-queue",
+        "Is the airport queue worth it?",
+        "When should an NYC cab driver wait for an airport fare instead of heading back?",
+        "NYC TLC yellow-cab trip records, 2025",
+        airport.build,
+    ),
+]
 
 
 class UnsafeOutputError(ValueError):
