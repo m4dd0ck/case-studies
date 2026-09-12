@@ -1,0 +1,58 @@
+{% extends "base.html.j2" %}
+{% block body %}
+<div class="kicker">Memo · Credit cards</div>
+<h1>{{ memo.title }}</h1>
+<p class="question">{{ memo.question }}</p>
+
+<h2>Recommendation</h2>
+<div class="answer">
+  <p>Start with <b>{{ short(top[0].issue) | lower }}</b> and <b>{{ short(top[1].issue) | lower }}</b>.
+  Together they make up {{ "%.0f" | format(top_share * 100) }}% of card complaints but
+  {{ "%.0f" | format(top_money_share * 100) }}% of those that end with money back to the consumer.
+  Both are growing.</p>
+  {% for r in relabels %}
+  <p>Don't report the jump in {{ short(r.rising) | lower }} on its own. From {{ month_name(r.switch_month) }}
+  it rose as complaints about the {{ short(r.falling) | lower }} fell, which looks like a change of label. Together
+  they changed {{ "%+.0f" | format(r.combined_change * 100) }}%. Check this against internal
+  dispute logs before reporting it.</p>
+  {% endfor %}
+</div>
+
+<h2>Card complaints are rising</h2>
+<p>{{ "{:,}".format(now_total) }} complaints in {{ now_label }}, against
+{{ "{:,}".format(base_total) }} a year earlier ({{ "%+.0f" | format(total_change * 100) }}%).</p>
+<div class="panel">{{ trend_chart | safe }}
+  <p class="caption">Credit-card complaints per month, {{ first_month }} to {{ last_month }}.</p></div>
+
+{% if pair_chart %}
+<h2>One jump is probably a relabel</h2>
+<div class="panel">{{ pair_chart | safe }}
+  <p class="caption">From {{ month_name(relabels[0].switch_month) }}, investigation complaints
+  drop to a fraction of their level while statement complaints rise by more than that. Quote
+  the combined line.</p></div>
+{% endif %}
+
+<h2>Where the money goes back</h2>
+<div class="panel">{{ priority_chart | safe }}
+  <p class="caption">Complaints in {{ now_label }} likely to close with monetary relief
+  (count x historic relief rate). Highlighted: the two to start with.</p></div>
+<div class="panel scroll"><table>
+  <tr><th>Issue</th><th>Complaints</th><th>Change</th><th>Money back</th></tr>
+  {% for p in priorities %}
+  <tr><td>{{ short(p.issue) }}</td><td>{{ "{:,}".format(p.complaints) }}</td>
+    <td>{{ "—" if p.change is none else "%+.0f%%" | format(p.change * 100) }}</td>
+    <td>{{ "%.0f%%" | format(p.relief_rate * 100) }}</td></tr>
+  {% endfor %}
+</table></div>
+
+<h2>Caveats</h2>
+<ul>
+  <li>Complaints to the CFPB are a sample of unhappy customers, not all of them.</li>
+  <li>Monetary relief rate is a proxy for cost; the amounts are not published.</li>
+  <li>Recent complaints may still be open, so recent relief rates can move.</li>
+</ul>
+{% endblock %}
+{% block footer %}
+Data: CFPB Consumer Complaint Database, product "Credit card", counted by month received.
+Code: <a href="https://github.com/m4dd0ck/case-studies">github.com/m4dd0ck/case-studies</a>.
+{% endblock %}
