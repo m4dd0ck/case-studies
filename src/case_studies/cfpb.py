@@ -102,9 +102,14 @@ def period_total(counts: dict[str, int], first: str, last: str) -> int:
     return sum(n for month, n in counts.items() if first <= month <= last)
 
 
-def growth(series: dict[str, dict[str, int]], base: tuple[str, str], now: tuple[str, str]):  # type: ignore[no-untyped-def]
+Growth = tuple[str, int, int, float | None]
+
+
+def growth(
+    series: dict[str, dict[str, int]], base: tuple[str, str], now: tuple[str, str]
+) -> list[Growth]:
     """Rows of (issue, base count, current count, change) for the two periods, largest first."""
-    rows = []
+    rows: list[Growth] = []
     for issue, counts in series.items():
         before, after = period_total(counts, *base), period_total(counts, *now)
         rows.append((issue, before, after, (after - before) / before if before else None))

@@ -8,7 +8,7 @@ from typing import Any
 
 from jinja2 import Environment, PackageLoader, select_autoescape
 
-from case_studies.memos import airport
+from case_studies.memos import airport, complaints
 
 SITE_MARKER = ".memos-site"
 _env = Environment(
@@ -32,6 +32,13 @@ MEMOS = [
         "When should an NYC cab driver wait for an airport fare instead of heading back?",
         "NYC TLC yellow-cab trip records, 2025",
         airport.build,
+    ),
+    Memo(
+        "card-complaints",
+        "Which card complaints to fix first",
+        "Which credit-card complaint issues are growing and costing issuers money?",
+        "CFPB Consumer Complaint Database, 2024-2026",
+        complaints.build,
     ),
 ]
 
