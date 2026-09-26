@@ -55,8 +55,8 @@ def build_site(out_dir: Path) -> Path:
     out_dir.mkdir(parents=True)
     for memo in MEMOS:
         page = _env.get_template(f"{memo.slug}.html.j2").render(memo=memo, **memo.build())
-        (out_dir / f"{memo.slug}.html").write_text(page)
+        (out_dir / f"{memo.slug}.html").write_text(page, encoding="utf-8")
     index = out_dir / "index.html"
-    index.write_text(_env.get_template("index.html.j2").render(memos=MEMOS))
-    (out_dir / SITE_MARKER).write_text("Built by memos site; safe to delete.\n")
+    index.write_text(_env.get_template("index.html.j2").render(memos=MEMOS), encoding="utf-8")
+    (out_dir / SITE_MARKER).write_text("Built by memos site; safe to delete.\n", encoding="utf-8")
     return index

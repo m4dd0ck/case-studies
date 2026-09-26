@@ -53,7 +53,7 @@ def extract(first: str = "2024-01", last: str = "2026-06") -> tuple[Path, Path]:
     MONTHLY.parent.mkdir(parents=True, exist_ok=True)
     issues: set[str] = set()
     with httpx.Client(headers={"User-Agent": "case-studies (portfolio analysis)"}) as client:
-        with MONTHLY.open("w", newline="") as handle:
+        with MONTHLY.open("w", newline="", encoding="utf-8") as handle:
             writer = csv.writer(handle)
             writer.writerow(["month", "issue", "complaints"])
             for start, end in _month_ends(first, last):
@@ -61,7 +61,7 @@ def extract(first: str = "2024-01", last: str = "2026-06") -> tuple[Path, Path]:
                 for issue, count in _buckets(payload, "issue"):
                     writer.writerow([start[:7], issue, count])
                     issues.add(issue)
-        with OUTCOMES.open("w", newline="") as handle:
+        with OUTCOMES.open("w", newline="", encoding="utf-8") as handle:
             writer = csv.writer(handle)
             writer.writerow(["issue", "company_response", "complaints"])
             window = {
@@ -83,7 +83,7 @@ MONETARY = "Closed with monetary relief"
 def load_monthly(path: Path = MONTHLY) -> dict[str, dict[str, int]]:
     """issue -> month -> complaints."""
     series: dict[str, dict[str, int]] = {}
-    with path.open() as handle:
+    with path.open(encoding="utf-8") as handle:
         for row in csv.DictReader(handle):
             series.setdefault(row["issue"], {})[row["month"]] = int(row["complaints"])
     return series
@@ -92,7 +92,7 @@ def load_monthly(path: Path = MONTHLY) -> dict[str, dict[str, int]]:
 def load_outcomes(path: Path = OUTCOMES) -> dict[str, dict[str, int]]:
     """issue -> company response -> complaints."""
     outcomes: dict[str, dict[str, int]] = {}
-    with path.open() as handle:
+    with path.open(encoding="utf-8") as handle:
         for row in csv.DictReader(handle):
             outcomes.setdefault(row["issue"], {})[row["company_response"]] = int(row["complaints"])
     return outcomes

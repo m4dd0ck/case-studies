@@ -18,12 +18,10 @@ TRIP_URL = "https://d37ci6vzurychx.cloudfront.net/trip-data/yellow_tripdata_{mon
 ZONE_URL = "https://d37ci6vzurychx.cloudfront.net/misc/taxi_zone_lookup.csv"
 SNAPSHOT = Path("data/taxi_hourly_2025.csv")
 FIELDS = ["area", "to_area", "day_type", "hour", "trips", "earnings", "trip_minutes", "miles"]
-# TLC zone ids for the two city airports; Newark is outside the yellow-cab pickup market.
-AIRPORTS = {132: "JFK", 138: "LaGuardia"}
 
 
 def area(zone: str, zones: str) -> str:
-    """SQL for the four areas the memo compares."""
+    """SQL for the four areas the memo compares (TLC zones 132 = JFK, 138 = LaGuardia)."""
     return (
         f"case when {zone} = 132 then 'JFK' when {zone} = 138 then 'LaGuardia' "
         f"when {zones}.Borough = 'Manhattan' then 'Manhattan' else 'Elsewhere' end"
@@ -69,7 +67,7 @@ def extract(year: int = 2025, out: Path = SNAPSHOT) -> Path:
         [ZONE_URL, months, year],
     ).fetchall()
     out.parent.mkdir(parents=True, exist_ok=True)
-    with out.open("w", newline="") as handle:
+    with out.open("w", newline="", encoding="utf-8") as handle:
         writer = csv.writer(handle)
         writer.writerow(FIELDS)
         writer.writerows(rows)
@@ -98,7 +96,7 @@ class Trips:
 
 
 def load_hourly(path: Path = SNAPSHOT) -> list[dict[str, str]]:
-    with path.open(newline="") as handle:
+    with path.open(newline="", encoding="utf-8") as handle:
         return list(csv.DictReader(handle))
 
 
