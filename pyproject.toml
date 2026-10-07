@@ -1,6 +1,6 @@
 [project]
 name = "case-studies"
-version = "0.1.0"
+version = "1.0.0"
 description = "Decision memos on public data: a question, a recommendation, the evidence and its limits."
 requires-python = ">=3.12"
 dependencies = [
