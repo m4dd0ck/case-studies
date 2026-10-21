@@ -33,8 +33,6 @@ uv run pytest -q
 
 ## Release
 
-Follows `~/developer/hq/CONVENTIONS.md` §Versioning.
-
 1. Bump `version` in `pyproject.toml` and `__version__` in `src/case_studies/__init__.py`,
    then `uv lock` (CI installs with `--locked`).
 2. Commit `chore: Release vX.Y.Z`, tag `git tag -a vX.Y.Z`, push `main` and the tag.
@@ -56,5 +54,4 @@ rendered site to GitHub Pages. `gh run list --limit 3` shows whether it landed.
 uv run ruff check . && uv run ruff format --check . && uv run mypy src/
 uv run pytest
 uv run memos site
-python3 ~/.claude/scripts/doc-check.py --repo .
 ```

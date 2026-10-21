@@ -111,4 +111,3 @@ MIT (`LICENSE`).
 - `RUNBOOK.md`: run, refresh a snapshot, release, deploy, restore.
 - `CLAUDE.md`: the agent rules.
 - `TASK.md`: what is open.
-- `~/developer/hq/CONVENTIONS.md`: the portfolio release and commit rules.
