@@ -1,7 +1,7 @@
 """NYC yellow-cab trips: extract hourly earnings by pickup area, and the airport break-even.
 
 Extract: one pass over a year of TLC trip records (read remotely as parquet), aggregated to
-pickup area x day type x hour. The committed snapshot is that aggregate, ~500 rows.
+pickup area x day type x hour. The committed snapshot is that aggregate, about 770 rows.
 
 Driver earnings per trip are taken as fare + tip. Tolls, surcharges and taxes pass through to
 the city or the toll authority, so they are left out.
